@@ -1,5 +1,54 @@
 import random
 
+# Minimax algorithm with alpha-beta pruning
+def minimax(board, depth, maximizingPlayer):
+    if checkHorizontle(board) or checkRow(board) or checkDiag(board):
+        if maximizingPlayer:
+            return -1  # AI wins
+        else:
+            return 1   # Player wins
+    elif "-" not in board:
+        return 0  # It's a tie
+
+    if maximizingPlayer:
+        maxEval = float("-inf")
+        for i in range(9):
+            if board[i] == "-":
+                board[i] = AI_PLAYER
+                eval = minimax(board, depth + 1, False)
+                board[i] = "-"
+                if eval == 1:
+                    return eval  # Prioritize winning move
+                maxEval = max(maxEval, eval)
+        return maxEval
+    else:
+        minEval = float("inf")
+        for i in range(9):
+            if board[i] == "-":
+                board[i] = currentPlayer
+                eval = minimax(board, depth + 1, True)
+                board[i] = "-"
+                if eval == -1:
+                    return eval  # Block player's winning move
+                minEval = min(minEval, eval)
+        return minEval
+
+
+# AI's move
+def computer(board):
+    if currentPlayer == AI_PLAYER:
+        bestMove = None
+        bestEval = float("-inf")
+        for i in range(9):
+            if board[i] == "-":
+                board[i] = AI_PLAYER
+                eval = minimax(board, 0, False)
+                board[i] = "-"
+                if eval > bestEval:
+                    bestEval = eval
+                    bestMove = i
+        board[bestMove] = AI_PLAYER
+        switchPlayer()
 
 board = ["-", "-", "-",
         "-", "-", "-",
@@ -19,11 +68,15 @@ def printBoard(board):
 
 # take player input
 def playerInput(board):
-    inp = int(input("Select a spot 1-9: "))
-    if board[inp-1] == "-":
-        board[inp-1] = currentPlayer
-    else:
-        print("Oops player is already at that spot.")
+    while True:
+        inp = int(input("Select a spot 1-9: "))
+        if inp < 1 or inp > 9:
+            print("Invalid input. Please choose a number between 1 and 9.")
+        elif board[inp - 1] != "-":
+            print("Oops! That spot is already taken. Choose another spot.")
+        else:
+            board[inp - 1] = currentPlayer
+            break
 
 
 # check for win or tie
@@ -64,10 +117,11 @@ def checkDiag(board):
 
 def checkIfWin(board):
     global gameRunning
-    if checkHorizontle(board):
+    if checkHorizontle(board) or checkRow(board) or checkDiag(board):
         printBoard(board)
         print(f"The winner is {winner}!")
         gameRunning = False
+
 
     elif checkRow(board):
         printBoard(board)
