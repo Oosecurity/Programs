@@ -8,7 +8,6 @@ count = len(str(num))
 while temp > 0:
     digit = temp % 10
     sum += digit ** count
-    print(sum)
     temp //= 10 
 # check if the number is an Armstrong or not
 if num == sum:
