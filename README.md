@@ -1,1 +1,1 @@
-# Just some fun programs that I did when learning python
+[![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=Oosecurity)](https://github.com/anuraghazra/github-readme-stats)
