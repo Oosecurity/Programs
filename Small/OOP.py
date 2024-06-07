@@ -17,6 +17,7 @@ class Course:
         if len(self.students) < self.max_students:
             self.students.append(student)
             return True
+        print("Course is full")
         return False
     
     def get_average_grade(self):
@@ -32,5 +33,4 @@ s3 = Student("Jill", 19, 65)
 course = Course("Science", 2)
 course.add_student(s1)
 course.add_student(s2)
-print(course.get_average_grade())
 print(course.get_average_grade())
