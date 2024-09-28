@@ -1,6 +1,6 @@
 #Print with slicing str
 num = int(input("Please give a number: "))
-print("Your number is : %d" %num)
+print("Your number is :" + str(num))
 rev = int(str(num)[::-1])
 print("After reverse the number:", rev)
 
