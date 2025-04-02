@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Poké Deck (1-50)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        #loading {
+            font-size: 1.5em;
+            color: #555;
+        }
+
+        #pokedex-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive grid */
+            gap: 20px; /* Spacing between cards */
+            width: 95%;
+            max-width: 1200px; /* Max container width */
+            justify-content: center; /* Center items if grid doesn't fill width */
+        }
+
+        .pokemon-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            border: 2px solid transparent; /* Placeholder for active state */
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .pokemon-card.active {
+             border: 2px solid #e3350d; /* Highlight active card */
+             box-shadow: 0 6px 12px rgba(227, 53, 13, 0.3);
+        }
+
+        .pokemon-card img {
+            width: 96px; /* Standard sprite size */
+            height: 96px;
+            image-rendering: pixelated; /* Keep sprites sharp */
+            margin-bottom: 10px;
+            background-color: #eee; /* Light background for sprite visibility */
+            border-radius: 50%;
+            border: 1px solid #ddd;
+        }
+
+        .pokemon-card h2 {
+            margin: 10px 0 5px;
+            font-size: 1.1em;
+            text-transform: capitalize; /* Nicely formatted names */
+            color: #333;
+        }
+
+        .pokemon-card .pokemon-id {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 15px;
+        }
+
+        .stats-details {
+            display: none; /* Hidden by default */
+            margin-top: 15px;
+            text-align: left;
+            font-size: 0.9em;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-top: 1px solid #eee;
+        }
+
+        .stats-details p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .stats-details strong {
+            color: #333;
+            min-width: 100px; /* Align stat names */
+            display: inline-block;
+        }
+
+        .pokemon-card.active .stats-details {
+            display: block; /* Show stats when card is active */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>My Poké Deck</h1>
+    <div id="loading">Loading Pokémon...</div>
+    <div id="pokedex-container">
+        </div>
+
+    <script>
+        const pokedexContainer = document.getElementById('pokedex-container');
+        const loadingIndicator = document.getElementById('loading');
+        const POKEMON_COUNT = 50; // Number of Pokémon to fetch (1 to 50)
+        const POKE_API_BASE_URL = 'https://pokeapi.co/api/v2/pokemon/';
+
+        // Function to fetch data for a single Pokémon
+        async function fetchPokemonData(id) {
+            try {
+                const response = await fetch(`${POKE_API_BASE_URL}${id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(`Could not fetch Pokémon with ID ${id}:`, error);
+                return null; // Return null if fetch fails
+            }
+        }
+
+        // Function to create a Pokémon card HTML element
+        function createPokemonCard(pokemon) {
+            if (!pokemon) return null; // Don't create a card if data is missing
+
+            const card = document.createElement('div');
+            card.classList.add('pokemon-card');
+            card.dataset.pokemonId = pokemon.id; // Store ID for potential future use
+
+            // Determine the sprite URL (animated preferred, fallback to static)
+            const animatedSprite = pokemon.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
+            const staticSprite = pokemon.sprites.front_default;
+            const spriteUrl = animatedSprite || staticSprite || 'placeholder.png'; // Use placeholder if no sprite
+
+            const name = pokemon.name;
+            const id = pokemon.id.toString().padStart(3, '0'); // Format ID like #001
+
+            // Extract stats
+            const stats = {};
+            pokemon.stats.forEach(statInfo => {
+                stats[statInfo.stat.name] = statInfo.base_stat;
+            });
+
+            card.innerHTML = `
+                <img src="${spriteUrl}" alt="${name} sprite" onerror="this.src='${staticSprite || 'placeholder.png'}'; this.onerror=null;"> <h2>${name}</h2>
+                <p class="pokemon-id">#${id}</p>
+                <div class="stats-details">
+                    <p><strong>HP:</strong> ${stats['hp']}</p>
+                    <p><strong>Attack:</strong> ${stats['attack']}</p>
+                    <p><strong>Defense:</strong> ${stats['defense']}</p>
+                    <p><strong>Sp. Atk:</strong> ${stats['special-attack']}</p>
+                    <p><strong>Sp. Def:</strong> ${stats['special-defense']}</p>
+                    <p><strong>Speed:</strong> ${stats['speed']}</p>
+                </div>
+            `;
+
+            // Add click listener for interactivity
+            card.addEventListener('click', () => {
+                 // Optional: Close other active cards
+                // document.querySelectorAll('.pokemon-card.active').forEach(activeCard => {
+                //     if (activeCard !== card) {
+                //         activeCard.classList.remove('active');
+                //     }
+                // });
+
+                // Toggle the active class on the clicked card
+                card.classList.toggle('active');
+            });
+
+            return card;
+        }
+
+        // Function to fetch all Pokémon and display them
+        async function displayPokedex() {
+            const fetchPromises = [];
+            for (let i = 1; i <= POKEMON_COUNT; i++) {
+                fetchPromises.push(fetchPokemonData(i));
+            }
+
+            try {
+                // Wait for all fetch requests to complete
+                const pokemonList = await Promise.all(fetchPromises);
+
+                // Clear loading indicator
+                loadingIndicator.style.display = 'none';
+
+                // Create and append cards for each Pokémon
+                pokemonList.forEach(pokemon => {
+                    const cardElement = createPokemonCard(pokemon);
+                    if (cardElement) { // Only append if card creation was successful
+                        pokedexContainer.appendChild(cardElement);
+                    } else {
+                        console.warn(`Skipping card for a Pokémon due to missing data.`);
+                    }
+                });
+
+            } catch (error) {
+                loadingIndicator.textContent = 'Failed to load Pokémon data. Please check your internet connection and try again.';
+                console.error("Error fetching multiple Pokémon:", error);
+            }
+        }
+
+        // Start fetching and displaying Pokémon when the page loads
+        displayPokedex();
+
+    </script>
+
+</body>
+</html>
