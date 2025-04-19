@@ -1,0 +1,120 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, Dimensions } from 'react-native';
+import Video from 'react-native-video';
+
+// Mock data (replace with API calls)
+const mockVideos = [
+  {
+    id: '1',
+    platform: 'TikTok',
+    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+    title: 'Viral Dance Challenge',
+    likes: 1200000,
+  },
+  {
+    id: '2',
+    platform: 'Instagram',
+    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_2mb.mp4',
+    title: 'Funny Pet Compilation',
+    likes: 850000,
+  },
+  {
+    id: '3',
+    platform: 'Facebook',
+    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_5mb.mp4',
+    title: 'DIY Hack Gone Wrong',
+    likes: 2000000,
+  },
+];
+
+const ViralVideoApp = () => {
+  const [videos, setVideos] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Simulate fetching videos from APIs
+  useEffect(() => {
+    // In a real app, replace with API calls to TikTok, Instagram, or Facebook
+    setVideos(mockVideos);
+  }, []);
+
+  // Render each video item
+  const renderVideoItem = ({ item, index }) => (
+    <View style={styles.videoContainer}>
+      <Video
+        source={{ uri: item.url }}
+        style={styles.video}
+        resizeMode="cover"
+        repeat={true}
+        paused={currentIndex !== index} // Pause if not in view
+        onError={(e) => console.log('Video error:', e)}
+      />
+      <View style={styles.overlay}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.platform}>{item.platform} • {item.likes.toLocaleString()} likes</Text>
+      </View>
+    </View>
+  );
+
+  // Handle scroll to snap to next video
+  const onViewableItemsChanged = ({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={videos}
+        renderItem={renderVideoItem}
+        keyExtractor={(item) => item.id}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 80,
+        }}
+      />
+    </View>
+  );
+};
+
+const { height, width } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  videoContainer: {
+    height: height,
+    width: width,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  video: {
+    height: height,
+    width: width,
+    position: 'absolute',
+  },
+  overlay: {
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  platform: {
+    color: '#ccc',
+    fontSize: 14,
+  },
+});
+
+export default ViralVideoApp;
